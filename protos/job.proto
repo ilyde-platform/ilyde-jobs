@@ -1,0 +1,310 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.hopenly.ilyde.grpc";
+option java_outer_classname = "JobProto";
+option objc_class_prefix = "JS";
+
+package jobs;
+
+// The workspace service definition.
+service WorkspaceServices {
+    rpc Retrieve (ID) returns (Workspace) {}
+    rpc Create (Workspace) returns (Workspace) {}
+    rpc Update (Workspace) returns (Workspace) {}
+    rpc Delete (ID) returns (Status) {}
+    rpc Search (SearchRequest) returns (SearchWorkspaceResponse) {}
+    rpc Start (ID) returns (Status) {}
+    rpc State (ID) returns (JobState) {}
+    rpc Stop (ID) returns (Status) {}
+}
+
+// The ModelApis service definition.
+service ModelApisServices {
+    rpc Retrieve (ID) returns (ModelApis) {}
+    rpc Create (ModelApis) returns (ModelApis) {}
+    rpc Delete (ID) returns (Status) {}
+    rpc Search (SearchRequest) returns (SearchModelApisResponse) {}
+    rpc Start (ID) returns (Status) {}
+    rpc State (ID) returns (JobState) {}
+    rpc Stop (ID) returns (Status) {}
+}
+
+// The Run service definition.
+service RunServices {
+    rpc Get (ID) returns (Run) {}
+    rpc Submit (Run) returns (Status) {}
+    rpc Search (SearchRequest) returns (SearchRunResponse) {}
+    rpc State (ID) returns (JobState) {}
+    rpc Stop (ID) returns (Status) {}
+}
+
+// The Experiment service definition.
+service ExperimentServices {
+    rpc Get (ID) returns (Experiment) {}
+    rpc Submit (Experiment) returns (Status) {}
+    rpc Search (SearchRequest) returns (SearchExperimentResponse) {}
+    rpc State (ID) returns (JobState) {}
+    rpc Stop (ID) returns (Status) {}
+}
+
+// The Environment service definition.
+service EnvironmentServices {
+    rpc GetHardwareTier (ID) returns (HardwareTier) {}
+    rpc CreateHardwareTier (HardwareTier) returns (HardwareTier) {}
+    rpc UpdateHardwareTier (HardwareTier) returns (HardwareTier) {}
+    rpc DeleteHardwareTier (ID) returns (Status) {}
+    rpc ListHardwareTiers (Pagination) returns (ListHardwareTierResponse) {}
+    rpc ListEnvironments(Pagination) returns (ListEnvironmentResponse) {}
+    rpc ListWorkspaceIde(Pagination) returns (ListIdeResponse) {}
+}
+
+// ID message
+message ID {
+    string id = 1;
+}
+
+// message Job State
+message JobState {
+    string state = 1;
+}
+
+// message Environment
+message Environment {
+    string id = 1;
+    string name = 2;
+    string image = 3;
+    bool deployment = 4;
+}
+
+// message Ide
+message Ide {
+    string id = 1;
+    string name = 2;
+    string title = 3;
+}
+
+// message Hardware Tier
+message HardwareTier {
+    string id = 1;
+    string name = 2;
+    uint32 cores = 3;
+    uint32 memory = 4;
+    uint32 gpu = 5;
+    string instancegroup = 6;
+    bool is_default = 7;
+    bool deployment = 8;
+}
+
+message Metadata {
+    string name = 1;
+    string project = 2;
+    string owner = 3;
+    string link = 4;
+}
+
+// message Workspace
+message Workspace {
+    string id = 1;
+    Metadata metadata = 2;
+    WorkspaceState state = 3;
+    WorkspaceSpec spec = 4;
+    string create_at = 5;
+    string last_start = 6;
+    string last_update = 7;
+    uint32 uptime = 8; // in seconds
+
+    enum WorkspaceState {
+        CREATED = 0;
+        STARTING = 1;
+        RUNNING = 2;
+        STOPPED = 3;
+    }
+}
+
+// message Run
+message Run {
+    string id = 1;
+    Metadata metadata = 2;
+    RunState state = 3;
+    RunSpec spec = 4;
+    string create_at = 5;
+    string last_update = 7;
+    uint32 uptime = 8; // in seconds
+
+    enum RunState {
+        CREATED = 0;
+        STARTING = 1;
+        RUNNING = 2;
+        SUCCEEDED = 3;
+        FAILED = 4;
+        ABORTED = 5;
+    }
+}
+
+// message Experiment
+message Experiment {
+    string id = 1;
+    Metadata metadata = 2;
+    RunState state = 3;
+    ExperimentSpec spec = 4;
+    string create_at = 5;
+    string last_update = 7;
+    uint32 uptime = 8; // in seconds
+
+    enum RunState {
+        CREATED = 0;
+        STARTING = 1;
+        RUNNING = 2;
+        SUCCEEDED = 3;
+        FAILED = 4;
+        ABORTED = 5;
+    }
+}
+
+// message ModelApis
+message ModelApis {
+    string id = 1;
+    Metadata metadata = 2;
+    ApiState state = 3;
+    ModelApiSpec spec = 4;
+    string create_at = 5;
+    string last_start = 6;
+    string last_update = 7;
+    uint32 uptime = 8; // in seconds
+
+    enum ApiState {
+        CREATED = 0;
+        STARTING = 1;
+        RUNNING = 2;
+        STOPPED = 3;
+    }
+}
+
+// message Status
+message Status {
+    uint32 status = 1;
+    string message = 2;
+}
+
+// message  Pagination
+message Pagination {
+    uint32 page = 2;
+    uint32 limit = 3;
+}
+
+// message Search Workspace Response
+message SearchWorkspaceResponse {
+    uint32 total = 1;
+    uint32 page = 2;
+    uint32 limit = 3;
+    repeated Workspace data = 4;
+}
+
+// message Search Workspace Request
+message SearchRequest {
+    SearchFilter query = 1;
+    uint32 page = 2;
+    uint32 limit = 3;
+    message SearchFilter {
+         string project = 1;
+         string owner = 2;
+         string state = 3;
+    }
+}
+
+// message Search Run Response
+message SearchRunResponse {
+    uint32 total = 1;
+    uint32 page = 2;
+    uint32 limit = 3;
+    repeated Run data = 4;
+}
+
+// message Search Experiment Response
+message SearchExperimentResponse {
+    uint32 total = 1;
+    uint32 page = 2;
+    uint32 limit = 3;
+    repeated Experiment data = 4;
+}
+
+// message Search ModelApis Response
+message SearchModelApisResponse {
+    uint32 total = 1;
+    uint32 page = 2;
+    uint32 limit = 3;
+    repeated ModelApis data = 4;
+}
+
+message ListHardwareTierResponse {
+    uint32 total = 1;
+    uint32 page = 2;
+    uint32 limit = 3;
+    repeated HardwareTier data = 4;
+}
+
+message ListEnvironmentResponse {
+    uint32 total = 1;
+    uint32 page = 2;
+    uint32 limit = 3;
+    repeated Environment data = 4;
+}
+
+message ListIdeResponse {
+    uint32 total = 1;
+    uint32 page = 2;
+    uint32 limit = 3;
+    repeated Ide data = 4;
+}
+
+// message datasets
+message DatasetSpec {
+    string id = 1; // dataset id
+    string version = 2;
+    bool mount_output = 3;
+}
+
+// message workspace spec
+message WorkspaceSpec {
+    string revision = 1;
+    string ide = 2;
+    string hardware = 3;
+    string environment = 4;
+    repeated DatasetSpec datasets = 5;
+}
+
+// message run spec
+message RunSpec {
+    string revision = 1;
+    string command = 2; // the command to run in the project
+    repeated DatasetSpec datasets = 3;
+    string schedule_time = 4; // when to schedule the run
+    string hardware = 5;
+    string environment = 6;
+}
+
+// message param
+message Param {
+    string name = 1;
+    string value = 2;
+}
+
+// message experiment spec
+message ExperimentSpec {
+    string revision = 1;
+    repeated DatasetSpec datasets = 2;
+    string entrypoint = 3; // the entrypoint to run
+    repeated Param params = 4; // parameters
+    string hardware = 5;
+    string environment = 6;
+}
+
+// message deployment spec
+message ModelApiSpec {
+    string model = 1;
+    uint32 version = 2;
+    string stage = 3;
+    string hardware = 4;
+    string environment = 5;
+}

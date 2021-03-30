@@ -1,0 +1,26 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ name }}
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`{{ path_prefix }}`)
+      kind: Rule
+      services:
+      - name: {{ service_name }}
+        port: {{ service_port }}
+      {% if middlewares %}
+      middlewares:
+      {% for middleware in middlewares %}
+      - name: {{ middleware }}
+      {% endfor %}
+      {% endif %}
+    {% if enable_websocket %}
+    - match: PathPrefix(`{{ websocket_prefix }}`)
+      kind: Rule
+      services:
+      - name: {{ service_name }}
+        port: {{ websocket_port }}
+    {% endif %}

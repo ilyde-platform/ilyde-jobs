@@ -1,0 +1,103 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ name }}
+  labels:
+    app: {{ name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ name }}
+  template:
+    metadata:
+      labels:
+        app: {{ name }}
+    spec:
+      serviceAccountName: ilyde
+      securityContext:
+        runAsUser: 12574
+        runAsGroup: 12574
+        fsGroup: 12574
+        privileged: true
+      volumes:
+        - name: jobdir
+          emptyDir: {}
+        - name: iwd
+          persistentVolumeClaim:
+            claimName: {{ claim_name }}
+      initContainers:
+        - name: initializer
+          image: ilyde/job-initializer:rc8
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh"]
+          args: ["-c", "cp -R /opt/ilyde/* /jobdir"]
+          volumeMounts:
+            - name: jobdir
+              mountPath: "/jobdir"
+      containers:
+        - name: workspace
+          image: {{ environment }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          command: ["/bin/bash", "/opt/ilyde/entrypoint.sh"]
+          args:
+            {% for arg in args %}
+            - "{{ arg }}"
+            {% endfor %}
+          env:
+            - name: ILYDE_WORKING_DIR
+              value: "/ilyde"
+            - name: IP_ADDR
+              value: "0.0.0.0"
+            - name: ILYDE_JOB_ID
+              value: "{{ JOB_ID }}"
+            - name: AWS_ACCESS_KEY_ID
+              value: "{{ AWS_ACCESS_KEY_ID }}"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "{{ AWS_SECRET_ACCESS_KEY }}"
+            - name: MINIO_HOST
+              value: "{{ MINIO_HOST }}"
+            - name: MINIO_ENDPOINT
+              value: "{{ MINIO_ENDPOINT }}"
+            - name: ETCD_HOST
+              value: "{{ ETCD_HOST }}"
+            - name: DATASETS_SERVICES_ENDPOINT
+              value: "{{ DATASETS_SERVICES_ENDPOINT }}"
+            - name: PROJECTS_SERVICES_ENDPOINT
+              value: "{{ PROJECTS_SERVICES_ENDPOINT }}"
+          ports:
+            - name: web
+              containerPort: {{ port }}
+              protocol: TCP
+            - name: ws
+              containerPort: {{ websocket_port }}
+          startupProbe:
+            exec:
+              command:
+                - wget
+                - '--method=GET'
+                - '--output-file=/dev/null'
+                - '{{ startup_probe_endpoint }}'
+            timeoutSeconds: 15
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+
+          volumeMounts:
+            - name: jobdir
+              mountPath: /opt/ilyde
+            - name: iwd
+              mountPath: /ilyde
+
+          resources:
+            limits:
+              cpu: {{ cpus_limit }}
+              memory: {{ ram_limit }}
+            requests:
+              cpu: {{ cpus_request }}
+              memory: {{ ram_request }}
+
+      nodeSelector:
+        platform.ilyde.it/instancegroup: {{ instancegroup }}

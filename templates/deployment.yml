@@ -1,0 +1,63 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ name }}
+  labels:
+    app: {{ name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ name }}
+  template:
+    metadata:
+      labels:
+        app: {{ name }}
+    spec:
+      containers:
+        - name: deployment
+          image: {{ environment }}
+          command:
+            - mlflow
+            - models
+          args:
+            - serve
+            - '-m'
+            - {{ model_uri }}
+            - '-h'
+            - 0.0.0.0
+          ports:
+            - name: web
+              containerPort: {{ port }}
+              protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                - wget
+                - '--method=OPTIONS'
+                - '--output-file=/dev/null'
+                - '{{ startup_probe_endpoint }}'
+            timeoutSeconds: 15
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 30
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: "{{ AWS_ACCESS_KEY_ID }}"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "{{ AWS_SECRET_ACCESS_KEY }}"
+            - name: MLFLOW_TRACKING_URI
+              value: "{{ MLFLOW_TRACKING_URI }}"
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: "{{ MLFLOW_S3_ENDPOINT_URL }}"
+          resources:
+            limits:
+              cpu: {{ cpus_limit }}
+              memory: {{ ram_limit }}
+            requests:
+              cpu: {{ cpus_request }}
+              memory: {{ ram_request }}
+          imagePullPolicy: IfNotPresent
+      nodeSelector:
+        platform.ilyde.it/instancegroup: {{ instancegroup }}
+      serviceAccountName: ilyde

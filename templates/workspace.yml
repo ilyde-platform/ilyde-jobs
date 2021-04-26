@@ -28,7 +28,7 @@ spec:
             claimName: {{ claim_name }}
       initContainers:
         - name: initializer
-          image: ilyde/job-initializer:rc8
+          image: ilyde/job-initializer:1.0.0
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "cp -R /opt/ilyde/* /jobdir"]

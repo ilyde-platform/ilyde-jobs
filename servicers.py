@@ -469,7 +469,7 @@ class ExperimentServicer(job_pb2_grpc.ExperimentServicesServicer):
         # stop and clean all resources
         utils.clean_kubernetes_job(utils.get_k8s_name(experiment))
         experiment.state = "ABORTED"
-        delta = datetime.datetime.utcnow() - experiment.last_start
+        delta = datetime.datetime.utcnow() - experiment.create_at
         experiment.uptime += int(delta.total_seconds())
         experiment.last_update = datetime.datetime.now()
         experiment.save()

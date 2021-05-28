@@ -45,7 +45,7 @@ spec:
             claimName: {{ claim_name }}
       initContainers:
         - name: initializer
-          image: ilyde/job-initializer:1.0.0
+          image: "{{ ILYDE_JOB_INITIALIZER_IMAGE_NAME }}"
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "cp -R /opt/ilyde/* /jobdir"]
@@ -95,7 +95,7 @@ spec:
               command:
                 - wget
                 - '--method=GET'
-                - '--output-file=/dev/null'
+                - '--output-document=/dev/null'
                 - '{{ startup_probe_endpoint }}'
             timeoutSeconds: 15
             periodSeconds: 60

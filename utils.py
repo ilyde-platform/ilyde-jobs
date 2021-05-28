@@ -80,7 +80,8 @@ def get_envs(obj):
         "DATASETS_SERVICES_ENDPOINT": config.DATASETS_SERVICES_ENDPOINT,
         "PROJECTS_SERVICES_ENDPOINT": config.PROJECTS_SERVICES_ENDPOINT,
         "MLFLOW_TRACKING_URI": config.MLFLOW_TRACKING_URI,
-        "MLFLOW_S3_ENDPOINT_URL": config.MINIO_ENDPOINT
+        "MLFLOW_S3_ENDPOINT_URL": config.MINIO_ENDPOINT,
+        "ILYDE_JOB_INITIALIZER_IMAGE_NAME": config.ILYDE_JOB_INITIALIZER_IMAGE_NAME,
     }
     return envs
 
@@ -127,6 +128,8 @@ def spawn_workspace(workspace):
                 namespace=config.KUBE_NAMESPACE,
                 content=template
             ))
+    else:
+        args += ["--no-copy"]
     # deploy in kubernetes
     envs = get_envs(workspace)
     template = load_template(TEMPLATE_MAPPING["WORKSPACE"]).render(

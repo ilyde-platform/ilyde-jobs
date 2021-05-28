@@ -34,7 +34,7 @@ spec:
           emptyDir: {}
       initContainers:
         - name: initializer
-          image: ilyde/job-initializer:1.0.0
+          image: "{{ ILYDE_JOB_INITIALIZER_IMAGE_NAME }}"
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "cp -R /opt/ilyde/* /jobdir"]
